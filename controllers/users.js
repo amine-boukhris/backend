@@ -5,9 +5,22 @@ const jwt = require('jsonwebtoken')
 const config = require('../config')
 const verifyToken = require('../middleware/auth')
 
+router.post('/verifytoken', (req, res) => {
+    try {
+        const decoded = jwt.verify(req.body.token, config.JWT_SECRET)
+        if (decoded.userId) {
+            res.status(200).json({message: "token verified"})
+        } else {
+            res.status(401).json({ error: 'Invalid token' })
+        }
+    } catch (e) {
+        res.status(401).json({ error: 'Invalid token' })
+    }
+})
+
 router.get('/current', verifyToken, async (req, res) => {
     try {
-        const user = await User.findById(req.userId)
+        const user = await User.findById(req.userId).populate('books')
         if (!user) {
             return res.status(404).json({ error: 'User not found' })
         }
